@@ -1,0 +1,526 @@
+<script>
+  // @ts-nocheck
+
+  /**
+   * @type {any[]}
+   */
+  import Swal from "sweetalert2";
+  import { onMount } from "svelte";
+
+  let useraddmin = [];
+
+  ///////////////////////////////////////////////////////////////////////////////////
+
+  async function fetchData() {
+    try {
+      const response = await fetch("http://localhost:9999/api/useralladdmin");
+      if (!response.ok) {
+        throw new Error("ไม่เชื่อต่อ " + response.statusText);
+      }
+      useraddmin = await response.json();
+    } catch (error) {
+      console.error("ดึงข้อมูลไม่ได้", error);
+    }
+  }
+  fetchData();
+  ///////////////////////////////////////////////////////////////////////////////////
+
+  let modal_create = false;
+  async function Register() {
+    const requestOptions = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formdata),
+    };
+    let url = `http://localhost:9999/api/updateaddmin`;
+    const response = await fetch(url, requestOptions);
+    var data = await response.json();
+    console.log(data);
+
+    if (data == "COMPLETE") {
+      console.log("data = ");
+    } else {
+      console.log("fail");
+    }
+  }
+
+  async function Delete(id) {
+    const requestOptions = {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    let url = `http://localhost:9999/api/deleteaddmin?id_addmin=${id}`;
+    try {
+      const response = await fetch(url, requestOptions);
+      const datele = await response.json();
+      if (datele.Massage === "Success") {
+        Swal.fire({
+          title: "Successfully",
+          text: "Delete account Successfully!!",
+          icon: "success",
+        }).then(() => {
+          fetchData(); // Refresh user data after deletion
+        });
+      } else {
+        Swal.fire({
+          title: "สำเร็จ",
+          text: "ลบข้อมูลสำเร็จแล้ว",
+          icon: "success",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Delete Fail!!",
+        icon: "error",
+      });
+    }
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////
+  let modal_update = false;
+  let formdata = {
+    Name_admin: "",
+    Code_admin: "",
+    Email_admin: "",
+    Password_admin: "",
+    Phone_admin: "",
+    Status: false,
+  };
+  async function Update(userid) {
+    const requestOptions = {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formdata),
+    };
+    let url = `http://localhost:9999/api/updateaddmin?Id_admin=${userid}`;
+    const response = await fetch(url, requestOptions);
+    var update = await response.json();
+    console.log(update);
+  }
+  ////////////////////////////////////////////////
+  let id = "";
+  async function Getuserid(id) {
+    const requestOptions = {
+      method: "GET",
+    };
+    let url = `http://localhost:9999/api/useridAddmin?id_admin=${id}`;
+    const response = await fetch(url, requestOptions);
+    useraddmin = await response.json();
+    console.log(useraddmin);
+  }
+
+  /////////////////////////////////////////////////////
+</script>
+
+<body>
+  <div class="container">
+    <nav>
+      <h1>Pay shop</h1>
+      <ul>
+        <li><a href="/useradmin">ผู้ดูแลระบบ</a></li>
+        <li><a href="/userseller">ผู้ขาย</a></li>
+        <li><a href="/usercustomer">ลูกค้า</a></li>
+      </ul>
+    </nav>
+    <div class="container">
+      <div class="teble-head">
+        <div class="table-header">
+          <h1 class="text">Useradmin</h1>
+          <button
+            class="btn btn-primary px-4"
+            on:click={() => {
+              modal_create = true;
+            }}>Create account</button
+          >
+        </div>
+        <form class="d-flex search-form">
+          <input
+            class="form-control me-2"
+            type="search"
+            placeholder="Search"
+            aria-label="Search"
+            bind:value={id}
+          />
+          <button class="btn btn-success" type="submit">
+            <label for="submit">
+              <span class="material-symbols-outlined">search</span>
+            </label>
+          </button>
+        </form>
+      </div>
+      <table class="table" style="width: 100%; margin-top: 10px;">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>รหัสผู้ดูแล</th>
+            <th>ชื่อ - นามสกุล</th>
+            <th>อีเมล</th>
+            <th>เบอร์โทรศัทพ์</th>
+            <th>สถานะ</th>
+            <th>Tilte</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Table rows -->
+          {#each useraddmin as user}
+            <tr>
+              <td>{user.Id_admin}</td>
+              <td>{user.Code_admin}</td>
+              <td>{user.Name_admin} </td>
+              <td>{user.Email_admin}</td>
+              <td>{user.Phone_admin}</td>
+              <td>{user.Status}</td>
+              <td>
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <!-- svelte-ignore missing-declaration -->
+                <svg
+                  on:click={() => {
+                    modal_update = true;
+                    formdata.Id_admin = user.Id_admin;
+                    formdata.Name_admin = user.Name_admin;
+                    formdata.Email_admin = user.Email_admin;
+                    formdata.Password_admin = formdata.Password_admin;
+                    formdata.Phone_admin = user.Phone_admin;
+                  }}
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  class="bi bi-pencil-square mx-1"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"
+                  />
+                  <path
+                    fill-rule="evenodd"
+                    d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"
+                  />
+                </svg>
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <svg
+                  on:click={() => {
+                    Swal.fire({
+                      title: "ต้องการลบข้อมูล",
+                      text: "ยืนยันการลบข้อมูลนี้หรือไม่ ?",
+                      icon: "warning",
+                      showDenyButton: true,
+                      denyButtonText: "ยกเลิก",
+                      confirmButtonText: "ตกลง",
+                    }).then((response) => {
+                      if (response.isConfirmed) {
+                        Delete(user.Id_admin);
+                      }
+                    });
+                  }}
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  class="bi bi-trash mx-1"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"
+                  />
+                  <path
+                    d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"
+                  />
+                </svg>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+{#if modal_create}
+  <div class="modal">
+    <div class="modal-content">
+      <div class="d-flex justify-content-between">
+        <h3>{modal_create ? "Create Account" : "Update Account"}</h3>
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <span
+          class="close"
+          on:click={() => {
+            modal_create = false;
+          }}>&times;</span
+        >
+      </div>
+      <span class="mb-2">Name</span>
+      <input
+        type="text"
+        class="form-control mb-2"
+        bind:value={formdata.Name_admin}
+      />
+      <span class="mb-2">Code_admin</span>
+      <input
+        type="Email"
+        class="form-control mb-2"
+        bind:value={formdata.Code_admin}
+      />
+      <span class="mb-2">Email</span>
+      <input
+        type="Email"
+        class="form-control mb-2"
+        bind:value={formdata.Email_admin}
+      />
+      <span class="mb-2">Password</span>
+      <input
+        type="Password"
+        class="form-control mb-2"
+        bind:value={formdata.Password_admin}
+      />
+      <span class="mb-2">Phone</span>
+      <input
+        type="text"
+        class="form-control mb-2"
+        bind:value={formdata.Phone_admin}
+        maxlength="10"
+      />
+      <div class="toggle-switch">
+        <input
+          type="checkbox"
+          id="toggle"
+          class="toggle-input"
+          bind:checked={formdata.Status}
+        />
+        <label for="toggle" class="toggle-label"></label>
+      </div>
+      <div class="d-flex justify-content-end">
+        <button
+          type="button"
+          class="btn btn-secondary px-4"
+          on:click={() => {
+            modal_create = false;
+          }}>Cancel</button
+        >
+        <!-- svelte-ignore missing-declaration -->
+        <button
+          type="button	"
+          class="btn btn-primary px-4 ms-3"
+          on:click={() => {
+            if (modal_create) {
+              Register();
+            }
+          }}>Save</button
+        >
+      </div>
+    </div>
+  </div>
+{/if}
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+
+  .container {
+    height: calc(100vh - 50px); /* Adjust height according to header size */
+  }
+
+  nav {
+    background-color: #f8f9fa;
+    width: 250px;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    position: fixed;
+    height: 100%;
+    bottom: 0;
+    left: 0;
+    overflow-y: auto;
+  }
+
+  nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  nav li {
+    margin: 15px 0;
+  }
+
+  nav a {
+    color: #007bff;
+    text-decoration: none;
+    display: block;
+    padding: 10px;
+    border-radius: 4px;
+  }
+
+  nav a:hover {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .teble-head {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .text {
+    color: #01204e;
+    padding: 15px;
+  }
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+
+  .search-form {
+    width: 400px;
+    display: flex;
+    align-items: center;
+  }
+
+  .form-control {
+    width: 200px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: 10px;
+  }
+
+  .modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px; /* Adjust width as needed */
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Close button styles */
+  .close {
+    cursor: pointer;
+    font-size: 24px;
+    font-weight: bold;
+    color: #aaaaaa;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: #000000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  /* Form input styles */
+  .form-control {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  /* Toggle switch styles */
+  .toggle-switch {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .toggle-input {
+    display: none;
+  }
+
+  .toggle-label {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+    background-color: #ccc;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+
+  .toggle-label:before {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: white;
+    left: 2px;
+    top: 2px;
+    transition: 0.3s;
+  }
+
+  .toggle-input:checked + .toggle-label {
+    background-color: #66bb6a;
+  }
+
+  .toggle-input:checked + .toggle-label:before {
+    transform: translateX(20px);
+  }
+
+  /* Button styles */
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background-color: #5a6268;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+</style>
